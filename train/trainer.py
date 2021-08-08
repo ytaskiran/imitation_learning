@@ -4,7 +4,8 @@ import gym
 import time
 import pickle
 
-from imitation_learning.utils.auxiliary import sample_trajectories, sample_trajectories_video
+from imitation_learning.utils.auxiliary import *
+from imitation_learning.agent.bc_agent import BCAgent
 
 NUM_VIDEO = 2
 
@@ -18,7 +19,8 @@ class Trainer:
         seed = self.params["seed"]
         np.random.seed(seed)
         torch.manual_seed(seed)
-        # pytorch utils gpu initalization TODO
+        init_gpu(use_gpu=not self.params["no_gpu"],
+                 gpu_id=self.params["gpu_id"])
 
         ##########
         ## ENV
@@ -53,8 +55,7 @@ class Trainer:
         ## AGENT
         ##########
 
-        # agent = self.params["agent_class"] TODO not yet implemented in run.py, I think pass directly instead of parameter
-        # self.agent = agent(self.env, self.params["agent_params"]) TODO implement agent class in agent folder
+        self.agent = BCAgent(self.env, self.params["agent_params"])
 
     
     def execute_training(self, n_iter, current_policy, eval_policy, 
@@ -89,9 +90,15 @@ class Trainer:
             self.env_total_steps += env_steps_this_batch
 
             if do_dagger and i >= start_dagger_at:
-                paths = self.relabel_with_expert(expert_policy, paths)
+                paths = self.relabel_with_expert(paths, expert_policy)
 
-            # self.agent.add_to_replay_buffer(paths) TODO examine the function and uncomment after initializing the agent class
+            self.agent.add_to_buffer(paths)
+
+            training_logs = self.train_agent()
+
+            if self.log_video or self.log_metrics:
+                print("Performing logging...")
+                #TODO define perform logging function
 
 
             
@@ -124,7 +131,7 @@ class Trainer:
         return paths, env_steps_this_batch, video_paths
 
 
-    def relabel_with_expert(self, expert_policy, paths):
+    def relabel_with_expert(self, paths, expert_policy):
         print("Relabelling observations with expert policy for DAgger")
         
         for path in paths:
@@ -132,8 +139,20 @@ class Trainer:
 
         return paths
 
+
     def train_agent(self):
-        pass
+        print("Training the agent using sampled data from experience replay buffer")
+        train_logs = []
+
+        for train_step in range(self.params['num_agent_train_steps_per_iter']):
+            ob_batch, ac_batch, rew_batch, next_ob_batch, terminal_batch = self.agent.sample(self.params['train_batch_size'])
+
+            train_log = self.agent.train(ob_batch, ac_batch)
+            train_logs.append(train_log)
+        
+        return train_logs
+
+
 
     def log(self, itr, paths, eval_policy, train_video_paths, training_logs):
         pass

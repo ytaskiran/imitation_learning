@@ -22,7 +22,11 @@ class MainTrainer:
         self.trainer = Trainer(self.params) # TODO Check implementation is finished
 
     def run(self):
-        pass # TODO
+        self.trainer.execute_training(self.params["n_iter"],
+                                      self.trainer.agent.policy,
+                                      self.trainer.agent.policy,
+                                      initial_expert_data=self.params["expert_data"],
+                                      do_dagger=self.params["do_dagger"]) #TODO add loaded expert policy
 
 def main():
     parser = argparse.ArgumentParser()

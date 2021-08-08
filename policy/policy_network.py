@@ -93,14 +93,14 @@ class Policy(NetworkPolicy):
         super().__init__(ac_dim, ob_dim, n_layers, size, **kwargs)
         self.loss = nn.MSELoss()
 
-    def update(self, observations, actions,
-               adv_n=None, acs_labels_na=None, qvals=None):
+    def update(self, observations, actions):
 
         loss = super().update(observations, actions)
         return {
             # TODO You can add extra logging information here, but keep this line
             'Training Loss': convert_to_numpy(loss),
         }
+
 
 
 
