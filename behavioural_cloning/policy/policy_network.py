@@ -96,7 +96,7 @@ class Policy(NetworkPolicy):
 
         loss = super().update(observations, actions)
         return {
-            # TODO You can add extra logging information here, but keep this line
+            # TODO You can add extra logging information here
             'Training Loss': convert_to_numpy(loss),
         }
 

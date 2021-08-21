@@ -1,4 +1,4 @@
-from imitation_learning.utils.auxiliary import *
+from behavioural_cloning.utils.auxiliary import *
 import numpy as np
 
 

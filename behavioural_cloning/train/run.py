@@ -19,7 +19,8 @@ class MainTrainer:
         self.params = dict(filter(lambda key: key != agent_params.keys, params.items()))
         self.params["agent_params"] = agent_params
 
-        self.trainer = Trainer(self.params) # TODO Check implementation is finished
+        self.trainer = Trainer(self.params)
+        # TODO define policy loader class 
 
     def run(self):
         self.trainer.execute_training(self.params["n_iter"],

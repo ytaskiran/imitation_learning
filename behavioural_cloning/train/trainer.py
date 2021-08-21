@@ -1,3 +1,4 @@
+from typing import OrderedDict
 import numpy as np
 import torch
 import gym
@@ -6,15 +7,16 @@ import pickle
 
 from behavioural_cloning.utils.auxiliary import *
 from behavioural_cloning.agent.bc_agent import BCAgent
+from behavioural_cloning.utils.logger import Logger
 
-NUM_VIDEO = 2
+NUM_VIDEO = 5
 
 class Trainer:
     
     def __init__(self, params):
 
         self.params = params
-        # self.logger = Logger(self.params["logdir"]) TODO Implement Logger class at utils
+        self.logger = Logger(self.params["logdir"])
 
         seed = self.params["seed"]
         np.random.seed(seed)
@@ -63,7 +65,8 @@ class Trainer:
                          start_dagger_at=1, expert_policy=None):
 
         self.env_total_steps = 0
-        self.beginning = time.time()
+        self.launch_time = time.time()
+        logdir = self.params["logdir"]
         batch_size = self.params["batch_size"]
         log_video_freq = self.params["video_log_freq"]
         log_metrics_freq = self.params["scalar_log_freq"]
@@ -97,8 +100,12 @@ class Trainer:
             training_logs = self.train_agent()
 
             if self.log_video or self.log_metrics:
-                print("Performing logging...")
-                #TODO define perform logging function
+                print("Performing logging operation...")
+                self.log(i, paths, eval_policy, train_video_paths, training_logs)
+
+            if self.params["save_params"]:
+                print("Saving agent params to file")
+                self.agent.save(f"{logdir}/policy_itr_{i}")
 
 
             
@@ -154,20 +161,60 @@ class Trainer:
 
 
 
-    def log(self, itr, paths, eval_policy, train_video_paths, training_logs):
-        pass
+    def log(self, itr, paths, eval_policy, train_video_rollouts, training_logs):
+        eval_paths, eval_ensteps = sample_trajectories(self.env, 
+                                                          eval_policy, 
+                                                          self.params["eval_batch_size"],
+                                                          self.episode_len)
+        
+        if self.log_video and train_video_rollouts is not None:
+            eval_video_rollouts = sample_trajectories_video(self.env,
+                                                            eval_policy,
+                                                            NUM_VIDEO,
+                                                            self.episode_len,
+                                                            render=True)
+            self.logger.log_video_rollouts(train_video_rollouts, itr, self.fps,
+                                           NUM_VIDEO, video_title="TrainRollouts")
+            self.logger.log_video_rollouts(eval_video_rollouts, itr, self.fps,
+                                           NUM_VIDEO, video_title="EvalRollouts")
+            
+        
+        if self.log_metrics:
+            train_returns = [path.rewards.sum() for path in paths]
+            eval_returns = [eval_path.rewards.sum() for eval_path in eval_paths]
+
+            train_episode_lengths = [len(path.rewards) for path in paths]
+            eval_episode_lengths = [len(eval_path.rewards) for eval_path in eval_paths]
+
+            
+            logs = OrderedDict()
+            logs["TrainAverageReturn"] = np.mean(train_returns)
+            logs["TrainStdReturn"] = np.std(train_returns)
+            logs["TrainMaxReturn"] = np.max(train_returns)
+            logs["TrainMinReturn"] = np.min(train_returns)
+            logs["TrainAverageEpLen"] = np.mean(train_episode_lengths)
+
+            logs["TrainEnvstepsSoFar"] = self.env_total_steps
+            logs["TimeSinceStart"] = time.time() - self.launch_time
+
+            last_log = training_logs[-1]
+            logs.update(last_log)
+
+            if itr == 0:
+                initial_return = np.mean(train_returns)
+            logs["InitialDataCollectionAverageReturn"] = initial_return
+
+            logs["EvalAverageReturn"] = np.mean(eval_returns)
+            logs["EvalStdReturn"] = np.std(eval_returns)
+            logs["EvalMaxReturn"] = np.max(eval_returns)
+            logs["EvalMinReturn"] = np.min(eval_returns)
+            logs["EvalAverageEpLen"] = np.mean(eval_episode_lengths)
 
 
- 
+            for key, val in logs.items():
+                print(f"{key} -> {val}")
+                self.logger.log_scalar(val, key, itr)
 
+            print("Logging performed...\n\n\n")
 
-
-
-
-
-
-
-
-
-
-
+            self.logger.flush()

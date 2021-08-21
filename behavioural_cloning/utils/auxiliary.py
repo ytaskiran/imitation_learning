@@ -51,7 +51,7 @@ def sample_single_trajectory(env, policy, max_path_length, render=False,
 
         observation = env.reset()
         observations.append(observation)
-        action = policy.get_action(observation)[0] # TODO not yet implemented
+        action = policy.get_action(observation)[0] 
         actions.append(action)
 
         observation, reward, done, _ = env.step(action)
@@ -84,12 +84,12 @@ def sample_trajectories(env, policy, min_timesteps_per_batch, max_path_length,
 
     return paths, timesteps_this_batch
 
-def sample_trajectories_video(env, policy, n, max_path_length, render=True,
+def sample_trajectories_video(env, policy, num_video, max_path_length, render=True,
                               render_mode=("rgb_array")):
     
     paths = []
 
-    for i in range(n):
+    for i in range(num_video):
         paths.append(sample_single_trajectory(env, policy, max_path_length,
                                               render, render_mode))
     
