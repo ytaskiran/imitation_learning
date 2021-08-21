@@ -1,7 +1,7 @@
 import os
 import time
 import argparse
-from imitation_learning.train.trainer import Trainer
+from behavioural_cloning.train.trainer import Trainer
 
 class MainTrainer:
     

@@ -4,8 +4,8 @@ import gym
 import time
 import pickle
 
-from imitation_learning.utils.auxiliary import *
-from imitation_learning.agent.bc_agent import BCAgent
+from behavioural_cloning.utils.auxiliary import *
+from behavioural_cloning.agent.bc_agent import BCAgent
 
 NUM_VIDEO = 2
 

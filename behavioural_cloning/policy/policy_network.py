@@ -1,4 +1,3 @@
-from cs285.infrastructure.pytorch_util import from_numpy
 import torch
 from torch import nn
 from torch import optim
@@ -7,8 +6,8 @@ import numpy as np
 from collections import OrderedDict
 import itertools
 
-from imitation_learning.policy.base_policy import BasePolicy
-from imitation_learning.utils.auxiliary import *
+from behavioural_cloning.policy.base_policy import BasePolicy
+from behavioural_cloning.utils.auxiliary import *
 
 
 

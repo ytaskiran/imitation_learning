@@ -1,6 +1,6 @@
 from .base_agent import BaseAgent
-from imitation_learning.policy.policy_network import Policy
-from imitation_learning.utils.replay_buffer import ExperienceReplayBuffer
+from behavioural_cloning.policy.policy_network import Policy
+from behavioural_cloning.utils.replay_buffer import ExperienceReplayBuffer
 
 
 class BCAgent(BaseAgent):
