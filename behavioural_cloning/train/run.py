@@ -2,6 +2,8 @@ import os
 import time
 import argparse
 from behavioural_cloning.train.trainer import Trainer
+from behavioural_cloning.policy.expert_policy import ExpertPolicy
+
 
 class MainTrainer:
     
@@ -20,14 +22,17 @@ class MainTrainer:
         self.params["agent_params"] = agent_params
 
         self.trainer = Trainer(self.params)
-        # TODO define policy loader class 
+
+        print('Loading expert policy from...', self.params['expert_policy_file'])
+        self.expert_policy = ExpertPolicy(self.params["expert_policy_file"])
 
     def run(self):
         self.trainer.execute_training(self.params["n_iter"],
                                       self.trainer.agent.policy,
                                       self.trainer.agent.policy,
                                       initial_expert_data=self.params["expert_data"],
-                                      do_dagger=self.params["do_dagger"]) #TODO add loaded expert policy
+                                      do_dagger=self.params["do_dagger"],
+                                      expert_policy=self.expert_policy)
 
 def main():
     parser = argparse.ArgumentParser()
